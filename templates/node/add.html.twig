@@ -2077,7 +2077,16 @@
               if (field.type === 'link') {
                 this.formData.fields[fieldKey] = {
                   uri: '',
-                  title: ''
+                  title: '',
+                  attributes: {
+                    target: '',
+                    rel: '',
+                    class: '',
+                    id: '',
+                    name: '',
+                    accesskey: '',
+                    'aria-label': '',
+                  }
                 };
                 return;
               }
@@ -2121,9 +2130,7 @@
                   blocks: this.blocks,
                   status: this.settings.status,
                   banner: this.banner,
-                  fields: Object.fromEntries(
-                    Object.entries(this.formData.fields).filter(([key]) => key.startsWith('field_domain_'))
-                  ),
+                  fields: this.formData.fields,
                 }),
               });
 

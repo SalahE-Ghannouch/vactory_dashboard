@@ -746,6 +746,30 @@ class DashboardNodeController extends ControllerBase {
           continue;
         }
 
+        // Handle Link field type with attributes.
+        if (isset($field_definitions[$field_name]) &&
+            $field_definitions[$field_name]->getType() === 'link') {
+          if (is_array($field_value) && isset($field_value['uri'])) {
+            $link_data = [
+              'uri' => $field_value['uri'],
+              'title' => $field_value['title'] ?? '',
+            ];
+            // Add attributes if present.
+            if (!empty($field_value['attributes'])) {
+              $attributes = array_filter($field_value['attributes'], function($v) {
+                return $v !== '' && $v !== null;
+              });
+              if (!empty($attributes)) {
+                $link_data['options']['attributes'] = $attributes;
+              }
+            }
+            $node->set($field_name, $link_data);
+          } else {
+            $node->set($field_name, NULL);
+          }
+          continue;
+        }
+
         if ($field_name === "field_contenu_lie" && is_array($field_value)) {
           $node->set($field_name, implode(" ", $field_value));
           continue;
@@ -946,6 +970,30 @@ class DashboardNodeController extends ControllerBase {
             $node->getTranslation($language)->set($field_name, $map_data);
           } else {
             // Clear the field if coordinates are empty
+            $node->getTranslation($language)->set($field_name, NULL);
+          }
+          continue;
+        }
+
+        // Handle Link field type with attributes.
+        if (isset($field_definitions[$field_name]) &&
+            $field_definitions[$field_name]->getType() === 'link') {
+          if (is_array($field_value) && isset($field_value['uri'])) {
+            $link_data = [
+              'uri' => $field_value['uri'],
+              'title' => $field_value['title'] ?? '',
+            ];
+            // Add attributes if present.
+            if (!empty($field_value['attributes'])) {
+              $attributes = array_filter($field_value['attributes'], function($v) {
+                return $v !== '' && $v !== null;
+              });
+              if (!empty($attributes)) {
+                $link_data['options']['attributes'] = $attributes;
+              }
+            }
+            $node->getTranslation($language)->set($field_name, $link_data);
+          } else {
             $node->getTranslation($language)->set($field_name, NULL);
           }
           continue;
