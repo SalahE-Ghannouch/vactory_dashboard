@@ -22,7 +22,7 @@ advanced_dashboard.settings.support:
 advanced_dashboard.dashboard_widget_visibility:
   title: 'Dashboard widget visibility'
   description: 'Manage dashboard and sidebar widgets visibility.'
-  route_name: vactory_dashboard.dashboard_widget_visibility
+  route_name: dashboard.dashboard_widget_visibility
   parent: advanced_dashboard.settings
   weight: 2
 
