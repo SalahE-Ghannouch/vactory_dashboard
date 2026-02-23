@@ -599,6 +599,7 @@ function vactory_dashboard_preprocess(&$variables) {
     $data['pagespeed'] = $config->get('pagespeed_btn');
 
     $data['sidebar'] = getSidebarData();
+    $data['widget_visibility'] = get_dashboard_widget_visibility();
   }
 
   $variables = array_merge($variables, $data);
@@ -1578,4 +1579,35 @@ function is_vactory_admin_theme() {
   return \Drupal::service('theme.manager')
       ->getActiveTheme()
       ->getName() === 'vactory_admin';
+}
+
+/**
+ * Returns dashboard widget visibility configuration.
+ *
+ * @return array
+ *   Associative array keyed by widget machine name with boolean visibility.
+ */
+function get_dashboard_widget_visibility(): array {
+  $config = \Drupal::config('vactory_dashboard.dashboard_widget_visibility');
+
+  $defaults = [
+    'stats' => TRUE,
+    'redmine' => TRUE,
+    'recent_pages' => TRUE,
+    'quick_actions' => TRUE,
+    'translations' => TRUE,
+    'captcha' => TRUE,
+    'languages' => TRUE,
+    'sitemaps' => TRUE,
+    'shield' => TRUE,
+    'banner_blocks' => TRUE,
+  ];
+
+  $values = [];
+
+  foreach ($defaults as $key => $default) {
+    $values[$key] = $config->get($key) ?? $default;
+  }
+
+  return $values;
 }
