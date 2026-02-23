@@ -1974,7 +1974,16 @@
                   const linkValue = node[fieldKey];
                   this.formData.fields[fieldKey] = {
                     uri: linkValue?.uri ?? '',
-                    title: linkValue?.title ?? ''
+                    title: linkValue?.title ?? '',
+                    attributes: {
+                      target: linkValue?.attributes?.target ?? '',
+                      rel: linkValue?.attributes?.rel ?? '',
+                      class: linkValue?.attributes?.class ?? '',
+                      id: linkValue?.attributes?.id ?? '',
+                      name: linkValue?.attributes?.name ?? '',
+                      accesskey: linkValue?.attributes?.accesskey ?? '',
+                      'aria-label': linkValue?.attributes?.['aria-label'] ?? '',
+                    }
                   };
                   return;
                 }
@@ -2208,9 +2217,7 @@
                   status: this.settings.status,
                   changed: this.changed,
                   banner: this.banner,
-                  fields: Object.fromEntries(
-                    Object.entries(this.formData.fields).filter(([key]) => key.startsWith('field_domain_'))
-                  ),
+                  fields: this.formData.fields,
                 }),
               });
               const data = await response.json();
