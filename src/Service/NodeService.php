@@ -180,18 +180,38 @@ class NodeService {
         continue;
       }
 
+      // Handle Link field type with attributes.
       if ($field['type'] === 'link') {
         $link_value = $entity->get($field['name'])->getValue();
         if (!empty($link_value)) {
           $link_item = reset($link_value);
+          $attributes = $link_item['options']['attributes'] ?? [];
           $node_data[$field['name']] = [
             'uri' => $link_item['uri'] ?? '',
             'title' => $link_item['title'] ?? '',
+            'attributes' => [
+              'target' => $attributes['target'] ?? '',
+              'rel' => $attributes['rel'] ?? '',
+              'class' => is_array($attributes['class'] ?? '') ? implode(' ', $attributes['class']) : ($attributes['class'] ?? ''),
+              'id' => $attributes['id'] ?? '',
+              'name' => $attributes['name'] ?? '',
+              'accesskey' => $attributes['accesskey'] ?? '',
+              'aria-label' => $attributes['aria-label'] ?? '',
+            ],
           ];
         } else {
           $node_data[$field['name']] = [
             'uri' => '',
             'title' => '',
+            'attributes' => [
+              'target' => '',
+              'rel' => '',
+              'class' => '',
+              'id' => '',
+              'name' => '',
+              'accesskey' => '',
+              'aria-label' => '',
+            ],
           ];
         }
         continue;
@@ -1564,6 +1584,24 @@ class NodeService {
           $field_info['type'] = 'string';
           $field_info['multiple'] = $cardinality == -1 || $cardinality > 1;
           $field_info['maxlength'] = $field_settings['max_length'] ?? 255;
+          break;
+
+        case 'link':
+          $field_info['type'] = 'link';
+          $component = $form_display->getComponent($field_name);
+          if ($component && $component['type'] === 'link_attributes') {
+            $field_info['widget_type'] = 'link_attributes';
+            $enabled_attributes = $component['settings']['enabled_attributes'] ?? [];
+            // Filter only enabled attributes.
+            $field_info['enabled_attributes'] = array_keys(array_filter($enabled_attributes));
+            // Get widget_default_open setting (expanded, closed, expandIfValuesSet).
+            $field_info['widget_default_open'] = $component['settings']['widget_default_open'] ?? 'closed';
+          }
+          else {
+            $field_info['widget_type'] = 'link_default';
+            $field_info['enabled_attributes'] = [];
+            $field_info['widget_default_open'] = 'closed';
+          }
           break;
       }
 
