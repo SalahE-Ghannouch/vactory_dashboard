@@ -135,7 +135,9 @@ class DashboardVactoryPageController extends ControllerBase {
       '#banner' => $this->nodeService->getBannerConfiguration("vactory_page"),
       '#domain_access_enabled' => \Drupal::moduleHandler()->moduleExists('domain_access'),
       '#anchor' => \Drupal::moduleHandler()->moduleExists('vactory_anchor'),
-      '#scheduler_enabled' => \Drupal::moduleHandler()->moduleExists('scheduler'),
+      '#scheduler_enabled' => $this->nodeService->getSchedulerBundleSettings('vactory_page')['enabled'],
+      '#scheduler_publish_enabled' => $this->nodeService->getSchedulerBundleSettings('vactory_page')['publish_enable'],
+      '#scheduler_unpublish_enabled' => $this->nodeService->getSchedulerBundleSettings('vactory_page')['unpublish_enable'],
     ];
   }
 
@@ -229,7 +231,9 @@ class DashboardVactoryPageController extends ControllerBase {
       '#banner' => $this->nodeService->getBannerConfiguration("vactory_page"),
       '#domain_access_enabled' => \Drupal::moduleHandler()->moduleExists('domain_access'),
       '#anchor' => \Drupal::moduleHandler()->moduleExists('vactory_anchor'),
-      '#scheduler_enabled' => \Drupal::moduleHandler()->moduleExists('scheduler'),
+      '#scheduler_enabled' => $this->nodeService->getSchedulerBundleSettings('vactory_page')['enabled'],
+      '#scheduler_publish_enabled' => $this->nodeService->getSchedulerBundleSettings('vactory_page')['publish_enable'],
+      '#scheduler_unpublish_enabled' => $this->nodeService->getSchedulerBundleSettings('vactory_page')['unpublish_enable'],
     ];
   }
 
@@ -313,7 +317,9 @@ class DashboardVactoryPageController extends ControllerBase {
       '#domain_access_enabled' => \Drupal::moduleHandler()->moduleExists('domain_access'),
       '#banner' => $this->nodeService->getBannerConfiguration("vactory_page"),
       '#anchor' => \Drupal::moduleHandler()->moduleExists('vactory_anchor'),
-      '#scheduler_enabled' => \Drupal::moduleHandler()->moduleExists('scheduler'),
+      '#scheduler_enabled' => $this->nodeService->getSchedulerBundleSettings('vactory_page')['enabled'],
+      '#scheduler_publish_enabled' => $this->nodeService->getSchedulerBundleSettings('vactory_page')['publish_enable'],
+      '#scheduler_unpublish_enabled' => $this->nodeService->getSchedulerBundleSettings('vactory_page')['unpublish_enable'],
     ];
   }
 
@@ -625,25 +631,11 @@ class DashboardVactoryPageController extends ControllerBase {
         $node->getTranslation($language)->set('unpublish_on', NULL);
       }
 
-      // Ensure the node type has scheduler third-party settings enabled so that
-      // scheduler_cron() includes this bundle in its processing query.
-      if (\Drupal::moduleHandler()->moduleExists('scheduler') && (!empty($settings['publish_on']) || !empty($settings['unpublish_on']))) {
-        $node_type = $this->entityTypeManager->getStorage('node_type')->load($node->bundle());
-        if ($node_type) {
-          $needs_type_save = FALSE;
-          if (!empty($settings['publish_on']) && !$node_type->getThirdPartySetting('scheduler', 'publish_enable', FALSE)) {
-            $node_type->setThirdPartySetting('scheduler', 'publish_enable', TRUE);
-            $needs_type_save = TRUE;
-          }
-          if (!empty($settings['unpublish_on']) && !$node_type->getThirdPartySetting('scheduler', 'unpublish_enable', FALSE)) {
-            $node_type->setThirdPartySetting('scheduler', 'unpublish_enable', TRUE);
-            $needs_type_save = TRUE;
-          }
-          if ($needs_type_save) {
-            $node_type->save();
-          }
-        }
-      }
+      $this->nodeService->ensureSchedulerBundleSettings(
+        $node->bundle(),
+        !empty($settings['publish_on']),
+        !empty($settings['unpublish_on'])
+      );
 
       // Update SEO fields if they exist.
       if (!empty($seo) && $node->hasField('field_vactory_meta_tags')) {
@@ -757,25 +749,11 @@ class DashboardVactoryPageController extends ControllerBase {
         $node->set('unpublish_on', strtotime($settings['unpublish_on']));
       }
 
-      // Ensure the node type has scheduler third-party settings enabled so that
-      // scheduler_cron() includes this bundle in its processing query.
-      if (\Drupal::moduleHandler()->moduleExists('scheduler') && (!empty($settings['publish_on']) || !empty($settings['unpublish_on']))) {
-        $node_type = $this->entityTypeManager->getStorage('node_type')->load($node->bundle());
-        if ($node_type) {
-          $needs_type_save = FALSE;
-          if (!empty($settings['publish_on']) && !$node_type->getThirdPartySetting('scheduler', 'publish_enable', FALSE)) {
-            $node_type->setThirdPartySetting('scheduler', 'publish_enable', TRUE);
-            $needs_type_save = TRUE;
-          }
-          if (!empty($settings['unpublish_on']) && !$node_type->getThirdPartySetting('scheduler', 'unpublish_enable', FALSE)) {
-            $node_type->setThirdPartySetting('scheduler', 'unpublish_enable', TRUE);
-            $needs_type_save = TRUE;
-          }
-          if ($needs_type_save) {
-            $node_type->save();
-          }
-        }
-      }
+      $this->nodeService->ensureSchedulerBundleSettings(
+        $node->bundle(),
+        !empty($settings['publish_on']),
+        !empty($settings['unpublish_on'])
+      );
 
       // Update SEO fields if they exist.
       if (!empty($seo) && $node->hasField('field_vactory_meta_tags')) {
