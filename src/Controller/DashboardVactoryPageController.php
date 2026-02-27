@@ -625,6 +625,26 @@ class DashboardVactoryPageController extends ControllerBase {
         $node->getTranslation($language)->set('unpublish_on', NULL);
       }
 
+      // Ensure the node type has scheduler third-party settings enabled so that
+      // scheduler_cron() includes this bundle in its processing query.
+      if (\Drupal::moduleHandler()->moduleExists('scheduler') && (!empty($settings['publish_on']) || !empty($settings['unpublish_on']))) {
+        $node_type = $this->entityTypeManager->getStorage('node_type')->load($node->bundle());
+        if ($node_type) {
+          $needs_type_save = FALSE;
+          if (!empty($settings['publish_on']) && !$node_type->getThirdPartySetting('scheduler', 'publish_enable', FALSE)) {
+            $node_type->setThirdPartySetting('scheduler', 'publish_enable', TRUE);
+            $needs_type_save = TRUE;
+          }
+          if (!empty($settings['unpublish_on']) && !$node_type->getThirdPartySetting('scheduler', 'unpublish_enable', FALSE)) {
+            $node_type->setThirdPartySetting('scheduler', 'unpublish_enable', TRUE);
+            $needs_type_save = TRUE;
+          }
+          if ($needs_type_save) {
+            $node_type->save();
+          }
+        }
+      }
+
       // Update SEO fields if they exist.
       if (!empty($seo) && $node->hasField('field_vactory_meta_tags')) {
         // Mettre à jour les meta tags avec les valeurs fournies dans $seo.
@@ -735,6 +755,26 @@ class DashboardVactoryPageController extends ControllerBase {
 
       if (!empty($settings['unpublish_on']) && $node->hasField('unpublish_on')) {
         $node->set('unpublish_on', strtotime($settings['unpublish_on']));
+      }
+
+      // Ensure the node type has scheduler third-party settings enabled so that
+      // scheduler_cron() includes this bundle in its processing query.
+      if (\Drupal::moduleHandler()->moduleExists('scheduler') && (!empty($settings['publish_on']) || !empty($settings['unpublish_on']))) {
+        $node_type = $this->entityTypeManager->getStorage('node_type')->load($node->bundle());
+        if ($node_type) {
+          $needs_type_save = FALSE;
+          if (!empty($settings['publish_on']) && !$node_type->getThirdPartySetting('scheduler', 'publish_enable', FALSE)) {
+            $node_type->setThirdPartySetting('scheduler', 'publish_enable', TRUE);
+            $needs_type_save = TRUE;
+          }
+          if (!empty($settings['unpublish_on']) && !$node_type->getThirdPartySetting('scheduler', 'unpublish_enable', FALSE)) {
+            $node_type->setThirdPartySetting('scheduler', 'unpublish_enable', TRUE);
+            $needs_type_save = TRUE;
+          }
+          if ($needs_type_save) {
+            $node_type->save();
+          }
+        }
       }
 
       // Update SEO fields if they exist.

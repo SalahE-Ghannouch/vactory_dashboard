@@ -862,6 +862,26 @@ class DashboardNodeController extends ControllerBase {
         $node->set('unpublish_on', strtotime($scheduler['unpublish_on']));
       }
 
+      // Ensure the node type has scheduler third-party settings enabled so that
+      // scheduler_cron() includes this bundle in its processing query.
+      if (\Drupal::moduleHandler()->moduleExists('scheduler') && (!empty($scheduler['publish_on']) || !empty($scheduler['unpublish_on']))) {
+        $node_type = $this->entityTypeManager->getStorage('node_type')->load($bundle);
+        if ($node_type) {
+          $needs_type_save = FALSE;
+          if (!empty($scheduler['publish_on']) && !$node_type->getThirdPartySetting('scheduler', 'publish_enable', FALSE)) {
+            $node_type->setThirdPartySetting('scheduler', 'publish_enable', TRUE);
+            $needs_type_save = TRUE;
+          }
+          if (!empty($scheduler['unpublish_on']) && !$node_type->getThirdPartySetting('scheduler', 'unpublish_enable', FALSE)) {
+            $node_type->setThirdPartySetting('scheduler', 'unpublish_enable', TRUE);
+            $needs_type_save = TRUE;
+          }
+          if ($needs_type_save) {
+            $node_type->save();
+          }
+        }
+      }
+
       $node->isNew();
       $node->save();
 
@@ -1102,7 +1122,26 @@ class DashboardNodeController extends ControllerBase {
         $node->getTranslation($language)->set('unpublish_on', NULL);
       }
 
-      // Save the node
+      // Ensure the node type has scheduler third-party settings enabled so that
+      // scheduler_cron() includes this bundle in its processing query.
+      if (\Drupal::moduleHandler()->moduleExists('scheduler') && (!empty($scheduler['publish_on']) || !empty($scheduler['unpublish_on']))) {
+        $node_type = $this->entityTypeManager->getStorage('node_type')->load($bundle);
+        if ($node_type) {
+          $needs_type_save = FALSE;
+          if (!empty($scheduler['publish_on']) && !$node_type->getThirdPartySetting('scheduler', 'publish_enable', FALSE)) {
+            $node_type->setThirdPartySetting('scheduler', 'publish_enable', TRUE);
+            $needs_type_save = TRUE;
+          }
+          if (!empty($scheduler['unpublish_on']) && !$node_type->getThirdPartySetting('scheduler', 'unpublish_enable', FALSE)) {
+            $node_type->setThirdPartySetting('scheduler', 'unpublish_enable', TRUE);
+            $needs_type_save = TRUE;
+          }
+          if ($needs_type_save) {
+            $node_type->save();
+          }
+        }
+      }
+      // Save the node.
       $node->save();
 
       return new JsonResponse([
